@@ -140,3 +140,27 @@ The project is complete when:
 5. Follow-up questions work (conversational memory)
 6. The README has clear setup instructions
 7. No API keys committed to the repo
+
+## Production Upgrades
+
+Capabilities designed but not implemented for the skills test. Listed here as the natural next steps for a production deployment.
+
+### Web Search Tool
+
+Add a `search_web` tool that the AI can call to answer questions requiring real-time market data, competitor pricing, or Amazon policy updates that aren't in the knowledge base. Implementation: Tavily or Brave Search API via a new tool definition in `src/lib/llm/tools.ts`. The orchestrator would decide when to search the web vs. query internal data based on the question.
+
+### File & Image Attachments
+
+Allow users to upload product images, listing screenshots, or CSV files for the AI to analyze. Implementation: multimodal model support (Gemini or Claude) for image analysis, CSV parsing via a new tool, and a file upload component in the chat panel. Use case: "Review this product image for compliance" or "Analyze this sales export."
+
+### Dynamic Few-Shot Retrieval
+
+Replace static few-shot SQL examples with similarity-based retrieval from a library of verified query-SQL pairs. At query time, embed the user's question and retrieve the 3-5 most similar examples. As the system handles real queries, store verified correct results to grow the example library automatically. Research shows this improves accuracy by ~6% over static examples.
+
+### Context7 MCP Integration
+
+Give the AI access to the Context7 documentation server so it can look up SQLite syntax, Vercel AI SDK patterns, or Amazon API documentation on-the-fly. Useful for edge cases where the static prompt doesn't cover a specific SQL pattern. Implementation: add Context7 as an MCP server and expose a `lookup_docs` tool.
+
+### Multi-Model Router
+
+Classify question difficulty and route simple queries (single-table lookups) to a cheaper/faster model (Haiku-class) while routing complex queries (multi-table JOINs, calculations) to a stronger model (Opus-class). The interface already supports this — it's a routing layer, not a rewrite. Estimated cost savings: 60-70% with no accuracy loss on simple queries.

@@ -147,3 +147,45 @@ flowchart TD
 
 - better-sqlite3 API: https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md
 - SQLite date functions: https://www.sqlite.org/lang_datefunc.html
+
+## SQL Prompt Engineering
+
+Based on research across 30+ sources (academic papers, production case studies, community best practices), the SQL tool prompt implements these proven techniques:
+
+### Annotated Schema (biggest accuracy lever)
+
+The model receives a hand-written annotated DDL schema with inline `--` comments explaining every column: business meaning, units, valid values, data quirks, and foreign key relationships. Research from Databrain (50K+ production queries analyzed) shows annotated schemas jump accuracy from ~55% to 90%+. This replaces the raw `getSchema()` DDL that lacks column descriptions.
+
+### SQLite Dialect Rules
+
+Explicit rules block common cross-dialect mistakes: no `EXTRACT()` (use `strftime()`), no `RIGHT JOIN`, no `CONCAT()` (use `||`), no `DATEADD` (use `date()` with modifiers). LLMs default to PostgreSQL syntax unless explicitly told otherwise.
+
+### Expanded Few-Shot Examples (15 patterns)
+
+Coverage includes: basic aggregations, JOINs, date ranges, ROAS/TACoS calculations, Buy Box analysis, conversion rate trends, subscription churn detection, multi-brand rankings, month-over-month growth with subqueries, campaign type breakdowns, and product-level metrics. Research shows 9+ examples benefit large-context models.
+
+### Structured Chain-of-Thought
+
+The prompt instructs the model to reason step-by-step: identify tables, determine JOINs, apply filters, choose aggregations, then write SQL. Research confirms structured CoT improves accuracy by 5-15% over direct generation.
+
+### Deterministic Validation
+
+Code-level validators catch what prompt instructions cannot guarantee:
+- `date('now')` blocked by regex (the dataset is fixed, not live)
+- `UNION` blocked (prevents injection via UNION SELECT)
+- `sqlite_master` / `sqlite_schema` blocked (prevents schema exploration)
+- Table/column whitelist (only known schema elements pass)
+- `isSelectOnly` blocks 13 destructive/meta keywords
+
+### Anti-Hallucination Instruction
+
+After the schema block, the prompt states: "You may ONLY reference the tables and columns listed above. Do not invent or guess column names." Research from Pinterest and Google Cloud confirms explicit column constraints reduce hallucinated schema references.
+
+### References
+
+- [We Evaluated 50,000+ LLM-Generated SQL Queries — Databrain](https://www.usedatabrain.com/blog/llm-sql-evaluation)
+- [How we built Text-to-SQL at Pinterest](https://medium.com/pinterest-engineering/how-we-built-text-to-sql-at-pinterest-30bad30dabff)
+- [Text to SQL: The Ultimate Guide for 2025](https://medium.com/@ayushgs/text-to-sql-the-ultimate-guide-for-2025-3fa4e78cbdf9)
+- [Techniques for improving text-to-SQL — Google Cloud](https://cloud.google.com/blog/products/databases/techniques-for-improving-text-to-sql)
+- [DAIL-SQL: Optimized Few-Shot Text-to-SQL](https://bolinding.github.io/papers/vldb24dailsql.pdf)
+- [OpenSearch-SQL: Dynamic Few-shot and Consistency Alignment](https://arxiv.org/html/2502.14913v1)

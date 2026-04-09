@@ -17,6 +17,9 @@ import {
   type ChatSessionStore,
 } from "@/lib/chat-sessions";
 
+const MAX_MESSAGE_LENGTH = 4_000;
+const COUNTER_THRESHOLD = 3_200; // 80% — only show counter near the limit
+
 interface ChatPanelProps {
   onClose: () => void;
   width?: number;
@@ -142,13 +145,14 @@ function ActiveChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUp = useRef(false);
 
-  const { messages, sendMessage, status, stop, error } = useChat({
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat({
     id: session.id,
     messages: session.messages.length > 0 ? session.messages : undefined,
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   const isStreaming = status === "streaming";
+  const isBusy = status === "streaming" || status === "submitted";
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -177,9 +181,19 @@ function ActiveChat({
     }
   }, [isStreaming]);
 
+  function formatError(err: Error): string {
+    const msg = err.message ?? "";
+    // Surface structured API errors (429, 400, 401, 500)
+    if (msg.includes("Too many requests")) return "Too many requests. Please wait a minute before trying again.";
+    if (msg.includes("Message too long")) return "Your message is too long. Please shorten it and try again.";
+    if (msg.includes("Conversation too long")) return "This conversation is too long. Please start a new one.";
+    if (msg.includes("API key")) return "Configuration error. The API key may be missing or invalid.";
+    return msg || "Something went wrong. Please try again.";
+  }
+
   function handleSend(text?: string) {
     const message = text ?? input.trim();
-    if (!message) return;
+    if (!message || status !== "ready" || message.length > MAX_MESSAGE_LENGTH) return;
     isUserScrolledUp.current = false;
     sendMessage({ text: message });
     setInput("");
@@ -205,9 +219,9 @@ function ActiveChat({
           </div>
         ) : (
           <div className="p-4 space-y-4">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <ChatMessage
-                key={message.id}
+                key={`${message.id}-${index}`}
                 role={message.role as "user" | "assistant"}
                 parts={message.parts as any[]}
                 isStreaming={
@@ -225,7 +239,13 @@ function ActiveChat({
             )}
             {error && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                {error.message ?? "Something went wrong. Please try again."}
+                <p>{formatError(error)}</p>
+                <button
+                  onClick={() => regenerate()}
+                  className="mt-2 text-xs underline underline-offset-2 hover:text-destructive/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                >
+                  Try again
+                </button>
               </div>
             )}
           </div>
@@ -239,11 +259,11 @@ function ActiveChat({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask about your brands..."
-            disabled={isStreaming}
+            disabled={status !== "ready"}
             rows={1}
             className="flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
           />
-          {isStreaming ? (
+          {isBusy ? (
             <button
               onClick={() => stop()}
               aria-label="Stop generating"
@@ -254,7 +274,7 @@ function ActiveChat({
           ) : (
             <button
               onClick={() => handleSend()}
-              disabled={!input.trim()}
+              disabled={!input.trim() || input.length > MAX_MESSAGE_LENGTH || status !== "ready"}
               aria-label="Send message"
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -262,6 +282,11 @@ function ActiveChat({
             </button>
           )}
         </div>
+          {input.length >= COUNTER_THRESHOLD && (
+            <div className={`text-right mt-1 text-xs ${input.length > MAX_MESSAGE_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+              {input.length.toLocaleString()} / {MAX_MESSAGE_LENGTH.toLocaleString()}
+            </div>
+          )}
       </div>
     </>
   );

@@ -6,8 +6,8 @@ node_modules/
 .env.local
 .env.production
 
-# Generated database
-data/sample.db
+# Generated database (committed for Vercel deployment — only 4MB)
+# data/sample.db
 
 # Orama persistence files
 data/orama/

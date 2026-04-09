@@ -8,6 +8,8 @@ let db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (!db) {
     db = new Database(DB_PATH, { readonly: true });
+    // Safety: limit query execution to 5 seconds to prevent abuse via expensive queries
+    db.pragma('busy_timeout = 5000');
   }
   return db;
 }
