@@ -15,6 +15,9 @@ data/orama/
 # Transformers.js model cache
 .transformers-cache/
 
+# Specs and plans (local-only)
+docs/superpowers/
+
 # PromptFoo output
 .promptfoo/
 promptfoo-output/

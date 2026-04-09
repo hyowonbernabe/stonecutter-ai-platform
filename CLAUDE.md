@@ -118,6 +118,7 @@ See `docs/design/roadmap.md` for full checklist.
 
 - Read the relevant design doc before touching any component
 - Never commit `.env` or API keys
+- Never commit or push `docs/superpowers/` — specs and plans are local-only, not part of the repo
 - SQLite is read-only — SELECT statements only
 - Keep files focused — one responsibility per file
 - Follow existing patterns in the codebase
