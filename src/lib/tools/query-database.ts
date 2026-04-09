@@ -116,14 +116,14 @@ function extractSql(raw: string): string {
 /** Block non-SELECT statements */
 function isSelectOnly(sql: string): boolean {
   const upper = sql.toUpperCase().trim();
+  if (!upper.startsWith('SELECT')) return false;
   const blocked = ['DROP', 'INSERT', 'UPDATE', 'DELETE', 'ALTER', 'CREATE', 'PRAGMA'];
   for (const keyword of blocked) {
-    // Check if it starts with a blocked keyword or contains it as a standalone statement
-    if (new RegExp(`\\b${keyword}\\b`).test(upper) && !upper.startsWith('SELECT')) {
+    if (new RegExp(`\\b${keyword}\\b`).test(upper)) {
       return false;
     }
   }
-  return upper.startsWith('SELECT');
+  return true;
 }
 
 /** Validate table names against known schema */
@@ -237,7 +237,11 @@ export async function queryDatabaseTool(
     // Execute
     try {
       const { rows, rowCount } = queryDb(sql);
-      return { sql, results: rows, rowCount };
+      // Sanity check: flag empty results so the LLM can note it to the user
+      const warning = rowCount === 0
+        ? 'Query returned 0 rows. The data may not exist for this date range or filter.'
+        : undefined;
+      return { sql, results: rows, rowCount, error: warning };
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
       continue;
