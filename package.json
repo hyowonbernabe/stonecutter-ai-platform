@@ -14,6 +14,7 @@
     "eval:tier3": "cross-env NODE_OPTIONS=--import=tsx promptfoo eval --filter-pattern tier3"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.156",
     "@base-ui/react": "^1.3.0",
     "@huggingface/transformers": "^4.0.1",
     "@openrouter/ai-sdk-provider": "^2.5.1",
