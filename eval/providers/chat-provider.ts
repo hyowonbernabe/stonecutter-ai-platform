@@ -32,7 +32,7 @@ export default class ChatProvider {
 
       const openrouter = createOpenRouter({ apiKey: env.OPENROUTER_API_KEY });
 
-      const { text, steps } = await generateText({
+      const result = await generateText({
         model: openrouter.chat(env.OPENROUTER_MODEL),
         system: SYSTEM_PROMPT,
         prompt,
@@ -40,16 +40,23 @@ export default class ChatProvider {
         stopWhen: stepCountIs(10),
       });
 
-      // If text is empty/whitespace but tools were called, extract tool results as fallback
-      if (!text.trim() && steps.length > 0) {
-        const toolResults = steps
-          .flatMap(s => s.toolResults ?? [])
-          .map(r => JSON.stringify(r.result))
-          .join('\n');
-        return { output: toolResults || '(No response generated)' };
+      // Primary: use the final synthesized text
+      if (result.text.trim()) {
+        return { output: result.text };
       }
 
-      return { output: text };
+      // Fallback: collect all text fragments and tool results from steps
+      const parts: string[] = [];
+      for (const step of result.steps) {
+        if (step.text?.trim()) parts.push(step.text);
+        if (step.toolResults) {
+          for (const tr of step.toolResults) {
+            parts.push(JSON.stringify(tr.result));
+          }
+        }
+      }
+
+      return { output: parts.join('\n') || '(No response generated)' };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return { error: message };
