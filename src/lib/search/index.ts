@@ -112,18 +112,19 @@ export async function initializeSearchIndex(): Promise<void> {
     }
   }
 
-  // Step 4: Embed all contextualized chunks
+  // Step 4: Embed all contextualized chunks (null when Transformers.js unavailable)
   console.log('[search] Generating embeddings...');
   const embeddings = await embedDocuments(contextualizedTexts);
-  console.log(`[search] Generated ${embeddings.length} embeddings.`);
+  console.log(`[search] Generated ${embeddings?.length ?? 0} embeddings.`);
 
   // Step 5: Create Orama DB and insert documents
   console.log('[search] Indexing...');
   db = create({ schema: ORAMA_SCHEMA });
 
+  // Use zero vectors when embeddings are unavailable — BM25 still works
   const docs = chunks.map((chunk, i) => ({
     chunk: contextualizedTexts[i],
-    embedding: embeddings[i],
+    embedding: embeddings ? embeddings[i] : new Array(768).fill(0) as number[],
     source: chunk.source,
     headers: chunk.headers,
     chunkIndex: chunk.chunkIndex,
@@ -160,23 +161,26 @@ export async function searchKnowledgeBase(
     throw new Error('[search] Index not initialized.');
   }
 
-  // Embed the query
+  // Embed the query — returns null when Transformers.js is unavailable (Vercel)
   const queryEmbedding = await embedQuery(query);
 
-  // Run hybrid search
-  const results = search(db, {
-    mode: 'hybrid',
-    term: query,
-    vector: {
-      value: queryEmbedding,
-      property: 'embedding',
-    },
-    similarity: 0.5,
-    limit: topK,
-  });
+  // Hybrid search when embeddings are available, BM25-only otherwise
+  const rawResults = queryEmbedding
+    ? search(db, {
+        mode: 'hybrid',
+        term: query,
+        vector: { value: queryEmbedding, property: 'embedding' },
+        similarity: 0.5,
+        limit: topK,
+      })
+    : search(db, {
+        mode: 'fulltext',
+        term: query,
+        limit: topK,
+      });
 
   // Normalize: search() may return sync or Promise
-  const resolved = results instanceof Promise ? await results : results;
+  const resolved = rawResults instanceof Promise ? await rawResults : rawResults;
 
   // Resolve parent chunks: if a child is retrieved, return its parent's content
   const chunks: { content: string; source: string; section: string }[] = [];
