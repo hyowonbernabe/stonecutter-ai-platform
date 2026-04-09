@@ -1,2 +1,28 @@
 node_modules/
 .next/
+
+# Environment variables (real keys)
+.env
+.env.local
+.env.production
+
+# Generated database
+data/sample.db
+
+# Orama persistence files
+data/orama/
+
+# Transformers.js model cache
+.transformers-cache/
+
+# PromptFoo output
+.promptfoo/
+promptfoo-output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
