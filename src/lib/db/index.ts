@@ -28,6 +28,7 @@ export function getSchema(): string {
 }
 
 export function getSampleRows(tableName: string, limit: number = 3): Record<string, unknown>[] {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) throw new Error(`Invalid table name: ${tableName}`);
   const database = getDb();
   const stmt = database.prepare(`SELECT * FROM ${tableName} LIMIT ?`);
   return stmt.all(limit) as Record<string, unknown>[];
