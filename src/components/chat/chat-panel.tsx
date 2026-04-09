@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { X, ArrowUp, Plus, Clock } from "lucide-react";
+import { X, ArrowUp, Plus, Clock, Loader2 } from "lucide-react";
 import { ChatMessage } from "./chat-message";
 import { StarterPrompts } from "./starter-prompts";
 import { ChatHistory } from "./chat-history";
@@ -210,6 +210,12 @@ function ActiveChat({
                 }
               />
             ))}
+            {(status === "submitted" || (isStreaming && messages[messages.length - 1]?.role === "user")) && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Thinking...</span>
+              </div>
+            )}
             {error && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
                 {error.message ?? "Something went wrong. Please try again."}
