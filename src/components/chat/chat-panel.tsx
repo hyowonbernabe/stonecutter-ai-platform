@@ -3,9 +3,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { X, ArrowUp } from "lucide-react";
+import { X, ArrowUp, Plus, Clock } from "lucide-react";
 import { ChatMessage } from "./chat-message";
 import { StarterPrompts } from "./starter-prompts";
+import { ChatHistory } from "./chat-history";
+import {
+  loadStore,
+  createSession,
+  updateSessionMessages,
+  switchSession,
+  deleteSession,
+  getActiveSession,
+  type ChatSessionStore,
+} from "@/lib/chat-sessions";
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -13,17 +23,132 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ onClose, width }: ChatPanelProps) {
+  const [store, setStore] = useState<ChatSessionStore>(() => {
+    const loaded = loadStore();
+    if (loaded.sessions.length === 0) {
+      return createSession(loaded);
+    }
+    if (!loaded.activeId || !loaded.sessions.find((s) => s.id === loaded.activeId)) {
+      return { ...loaded, activeId: loaded.sessions[0].id };
+    }
+    return loaded;
+  });
+
+  const [showHistory, setShowHistory] = useState(false);
+  const activeSession = getActiveSession(store);
+
+  function handleNewChat() {
+    const next = createSession(store);
+    setStore(next);
+    setShowHistory(false);
+  }
+
+  function handleSelectSession(id: string) {
+    const next = switchSession(store, id);
+    setStore(next);
+    setShowHistory(false);
+  }
+
+  function handleDeleteSession(id: string) {
+    const next = deleteSession(store, id);
+    if (next.sessions.length === 0) {
+      setStore(createSession(next));
+    } else {
+      setStore(next);
+    }
+  }
+
+  function handleMessagesChange(sessionId: string, messages: any[]) {
+    setStore((prev) => updateSessionMessages(prev, sessionId, messages));
+  }
+
+  const panelStyle = width ? { width: `${width}px`, minWidth: `${Math.min(width, 300)}px` } : {};
+
+  return (
+    <div
+      className="flex h-full w-[400px] min-w-[300px] max-w-[600px] flex-col border-l border-border bg-sidebar"
+      style={panelStyle}
+    >
+      {/* Header */}
+      <div className="flex h-12 items-center gap-2 border-b border-border px-3">
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          aria-label={showHistory ? "Hide conversation history" : "Show conversation history"}
+          className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            showHistory
+              ? "bg-secondary text-foreground"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          }`}
+        >
+          <Clock className="h-4 w-4" />
+        </button>
+
+        <span className="flex-1 text-sm font-semibold text-foreground truncate">
+          {activeSession?.title ?? "AI Assistant"}
+        </span>
+
+        <button
+          onClick={handleNewChat}
+          aria-label="New conversation"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+
+        <button
+          onClick={onClose}
+          aria-label="Close chat panel"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Body */}
+      {showHistory ? (
+        <ChatHistory
+          sessions={store.sessions}
+          activeId={store.activeId}
+          onSelect={handleSelectSession}
+          onDelete={handleDeleteSession}
+          onNew={handleNewChat}
+        />
+      ) : activeSession ? (
+        <ActiveChat
+          key={activeSession.id}
+          session={activeSession}
+          onMessagesChange={(msgs) => handleMessagesChange(activeSession.id, msgs)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ActiveChat({
+  session,
+  onMessagesChange,
+}: {
+  session: { id: string; messages: any[] };
+  onMessagesChange: (messages: any[]) => void;
+}) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUp = useRef(false);
 
   const { messages, sendMessage, status, stop, error } = useChat({
+    id: session.id,
+    messages: session.messages.length > 0 ? session.messages : undefined,
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   const isStreaming = status === "streaming";
 
-  // Detect if user has scrolled up from bottom
+  useEffect(() => {
+    if (messages.length > 0) {
+      onMessagesChange(messages);
+    }
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -31,7 +156,6 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
     isUserScrolledUp.current = distanceFromBottom > 60;
   }, []);
 
-  // Auto-scroll to bottom when messages change, unless user scrolled up
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -40,7 +164,6 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
     }
   }, [messages]);
 
-  // When streaming starts, reset scroll lock so new responses auto-scroll
   useEffect(() => {
     if (isStreaming) {
       isUserScrolledUp.current = false;
@@ -62,28 +185,8 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
     }
   }
 
-  const panelStyle = width ? { width: `${width}px`, minWidth: `${Math.min(width, 300)}px` } : {};
-
   return (
-    <div
-      className="flex h-full w-[400px] min-w-[300px] max-w-[600px] flex-col border-l border-border bg-sidebar"
-      style={panelStyle}
-    >
-      {/* Header */}
-      <div className="flex h-12 items-center justify-between border-b border-border px-4">
-        <span className="text-sm font-semibold text-foreground">
-          AI Assistant
-        </span>
-        <button
-          onClick={onClose}
-          aria-label="Close chat panel"
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Message area — native scroll div instead of ScrollArea */}
+    <>
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -116,7 +219,6 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
         )}
       </div>
 
-      {/* Input area */}
       <div className="border-t border-border p-3">
         <div className="flex items-end gap-2 rounded-lg border border-input bg-background p-1 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-[box-shadow]">
           <textarea
@@ -148,6 +250,6 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
