@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
-import { ChatPanel } from "@/components/layout/chat-panel";
+import { ChatPanel } from "@/components/chat/chat-panel";
 import { SidebarInset } from "@/components/ui/sidebar";
 
 export default function Home() {
