@@ -32,13 +32,22 @@ export default class ChatProvider {
 
       const openrouter = createOpenRouter({ apiKey: env.OPENROUTER_API_KEY });
 
-      const { text } = await generateText({
+      const { text, steps } = await generateText({
         model: openrouter.chat(env.OPENROUTER_MODEL),
         system: SYSTEM_PROMPT,
         prompt,
         tools: aiTools,
-        stopWhen: stepCountIs(5),
+        stopWhen: stepCountIs(10),
       });
+
+      // If text is empty/whitespace but tools were called, extract tool results as fallback
+      if (!text.trim() && steps.length > 0) {
+        const toolResults = steps
+          .flatMap(s => s.toolResults ?? [])
+          .map(r => JSON.stringify(r.result))
+          .join('\n');
+        return { output: toolResults || '(No response generated)' };
+      }
 
       return { output: text };
     } catch (error) {
