@@ -17,6 +17,10 @@ data/orama/
 
 # Specs and plans (local-only)
 docs/superpowers/
+.superpowers/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
 
 # PromptFoo output and eval results
 .promptfoo/
