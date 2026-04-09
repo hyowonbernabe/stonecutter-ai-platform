@@ -160,7 +160,7 @@ The model receives a hand-written annotated DDL schema with inline `--` comments
 
 Explicit rules block common cross-dialect mistakes: no `EXTRACT()` (use `strftime()`), no `RIGHT JOIN`, no `CONCAT()` (use `||`), no `DATEADD` (use `date()` with modifiers). LLMs default to PostgreSQL syntax unless explicitly told otherwise.
 
-### Expanded Few-Shot Examples (15 patterns)
+### Expanded Few-Shot Examples (14 patterns)
 
 Coverage includes: basic aggregations, JOINs, date ranges, ROAS/TACoS calculations, Buy Box analysis, conversion rate trends, subscription churn detection, multi-brand rankings, month-over-month growth with subqueries, campaign type breakdowns, and product-level metrics. Research shows 9+ examples benefit large-context models.
 

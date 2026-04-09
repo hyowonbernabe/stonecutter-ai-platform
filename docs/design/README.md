@@ -9,7 +9,7 @@ An AI-powered Amazon brand intelligence platform. A dashboard with real-time met
 | Framework | Next.js (App Router) | Single app: API routes + React UI |
 | LLM Orchestration | Vercel AI SDK | Streaming, tool calling, message management — built for Next.js |
 | LLM Provider | OpenRouter | Multi-model gateway, single API key |
-| LLM Model | Qwen 3.6 Plus (`qwen/qwen3.6-plus`) | 1M context, native tool calling, $0.325/M input |
+| LLM Model | MiniMax M2.7 (`minimax/minimax-m2.7`) | 204K context, native tool calling, $0.30/M input |
 | Embeddings | nomic-embed-text-v1.5 via Transformers.js v4 | Local, zero API keys, 8K context, community standard |
 | Search & Vector Store | Orama | TypeScript-native, BM25 + vector + hybrid search in one library |
 | Database | SQLite via better-sqlite3 | Given by the test — 5 tables, 14 months of data |
@@ -53,7 +53,7 @@ Each document is self-contained: it includes the decision, the research rational
 OPENROUTER_API_KEY=sk-or-...
 
 # Optional (defaults provided)
-OPENROUTER_MODEL=qwen/qwen3.6-plus
+OPENROUTER_MODEL=minimax/minimax-m2.7
 ```
 
 One API key. That's it. Everything else runs locally.

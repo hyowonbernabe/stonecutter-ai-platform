@@ -24,7 +24,7 @@ The conversation history is stored as a message array in the Next.js client stat
 - 20 messages = ~10 full Q&A cycles, covering virtually all realistic follow-up chains
 - Zero infrastructure, zero external dependencies, zero latency added
 - Tool call results naturally carry forward in message history — the model sees its previous `query_database` calls and can reference those results
-- With Qwen's 1M context, 8,500 tokens of history is under 1% of available context
+- With MiniMax M2.7's 204,800-token context, 8,500 tokens of history is under 4.2% of available context
 
 **For production at scale:** Implement a three-tier hierarchy: (1) recent messages verbatim (last 15-20), (2) older context summarized with domain-specific instructions ("preserve all SQL queries, schema references, and user-stated constraints"), (3) cross-session fact extraction via Mem0 (`@mem0/vercel-ai-provider`) for user preferences and frequently-queried patterns. Target metrics: Recall@50 > 90%, contradiction rate < 5%, memory retrieval latency < 200ms. Keep memory writes asynchronous — never block the response on memory storage.
 
@@ -61,7 +61,7 @@ Rough estimate per Q&A cycle:
 - Total per cycle: ~850 tokens
 - 10 cycles (20 messages): ~8,500 tokens
 
-With Qwen's 1M context window, this is negligible. The system prompt + schema + few-shot examples (~3,000 tokens) plus 8,500 tokens of history is well under 1% of available context.
+With MiniMax M2.7's 204,800-token context window, this is negligible. The system prompt + schema + few-shot examples (~3,000 tokens) plus 8,500 tokens of history is well under 6% of available context.
 
 ## References
 

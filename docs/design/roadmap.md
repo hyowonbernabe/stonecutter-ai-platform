@@ -9,7 +9,7 @@ flowchart TD
     L1["Layer 1: Foundation<br>(project scaffolding, deps, config)"]
     L2["Layer 2: Data Layer<br>(SQLite generation, knowledge ingestion into Orama)"]
     L3["Layer 3: Tools<br>(query_database, search_knowledge_base, check_compliance)"]
-    L4["Layer 4: AI Orchestration<br>(Vercel AI SDK + Qwen tool calling)"]
+    L4["Layer 4: AI Orchestration<br>(Vercel AI SDK + MiniMax M2.7 tool calling)"]
     L5["Layer 5: Testing<br>(PromptFoo evaluation — verify before UI)"]
     L6["Layer 6: Chat UI<br>(chatbot interface — core deliverable)"]
     L7["Layer 7: Dashboard<br>(metric cards, charts — additive polish)"]

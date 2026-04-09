@@ -43,7 +43,7 @@ export function ToolCallChip({ toolName, state, input, output, errorText }: Tool
       </CollapsibleTrigger>
 
       <CollapsibleContent className="mt-1.5">
-        {isDone && output && (
+        {isDone && !!output && (
           <div className="rounded-md border border-border bg-background p-3 text-xs">
             <ToolOutput toolName={toolName} output={output} />
           </div>

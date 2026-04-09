@@ -10,47 +10,51 @@ Configuration via environment variables:
 # Required
 OPENROUTER_API_KEY=sk-or-...
 
-# Optional — defaults to qwen/qwen3.6-plus
-OPENROUTER_MODEL=qwen/qwen3.6-plus
+# Optional — defaults to minimax/minimax-m2.7
+OPENROUTER_MODEL=minimax/minimax-m2.7
 ```
 
 The model is configurable via env var so swapping models requires zero code changes. This is the foundation for the production multi-model routing upgrade.
 
-## Model: Qwen 3.6 Plus
+## Model: MiniMax M2.7
 
 | Attribute | Value |
 |---|---|
-| Model ID | `qwen/qwen3.6-plus` |
-| Context window | 1,000,000 tokens |
-| Max output tokens | 65,536 |
-| Input price | $0.325 / million tokens |
-| Output price | $1.95 / million tokens |
+| Model ID | `minimax/minimax-m2.7` |
+| Context window | 204,800 tokens |
+| Max output tokens | 131,072 |
+| Input price | $0.30 / million tokens |
+| Output price | $1.20 / million tokens |
+| Cache read price | $0.06 / million tokens |
 | Tool calling | Native, first-class |
 | Structured output | Yes |
-| Reasoning | Always-on chain-of-thought |
+| Reasoning | Mandatory chain-of-thought |
 
-### Decision: Why Qwen 3.6 Plus
+### Decision: Why MiniMax M2.7
 
 **Alternatives considered:**
 
 | Model | Strength | Why not chosen |
 |---|---|---|
 | Claude Opus 4.6 | Strongest reasoning + instruction following | ~$15/$75 per M tokens — 50x more expensive. Best reliability, but overkill for this scope. |
-| Claude Sonnet 4.6 | Strong balance of quality and cost | ~$3/$15 per M tokens — still 10x more expensive than Qwen. |
-| GPT-4.1 | Excellent at code/SQL generation | Viable alternative. Competitive pricing. No 1M context. |
-| Gemini 2.5 Pro / 3.x | Natively multimodal (text + images + video) | Best option if the system ever needs to process product images. Slightly more expensive. |
+| Claude Sonnet 4.6 | Strong balance of quality and cost | ~$3/$15 per M tokens — still 10x more expensive than MiniMax. |
+| GPT-4.1 | Excellent at code/SQL generation | Viable alternative. Competitive pricing. No mandatory CoT. |
+| Gemini 2.5 Pro | Natively multimodal (text + images + video) | Best option if the system ever needs to process product images. More expensive. |
+| Qwen 3.6 Plus | 1M context window | Higher output price ($1.95/M). MiniMax M2.7 is cheaper and has mandatory CoT. |
 
-**Why Qwen won:**
-- 1M context window handles full schema + few-shot examples + conversation history + retrieved documents comfortably
-- Native tool calling is critical for our orchestration pattern
-- Cost-effective — roughly 10x cheaper than Claude Sonnet while competitive in quality (community-validated as "Opus 4.5 levels at 1/10th the price")
-- Strong document comprehension (OmniDocBench 91.2)
-- Released March 30, 2026 — current generation model
+**Why MiniMax M2.7 won:**
+- Mandatory chain-of-thought reasoning on every response — critical for complex SQL generation, hybrid data + knowledge questions, and multi-step analysis
+- 204,800 token context handles full schema + 14 few-shot examples + conversation history + retrieved documents comfortably
+- Native tool calling is required for our thin orchestrator pattern
+- Cost-effective: $0.30/M input, $1.20/M output — a fraction of Claude pricing
+- Cache read pricing ($0.06/M) reduces cost for repeated schema injections across tool calls
+- Strong at structured reasoning tasks: 56.2% on SWE-Pro, strong document generation
+- Released March 18, 2026 — current generation model
 
 **Known limitations to design around:**
-- ~26.5% code hallucination rate for API behaviors — mitigated by always injecting full schema into every SQL prompt (never let it guess table/column names)
+- Mandatory CoT adds token overhead — mitigated by the low per-token cost and the accuracy gains on complex queries
 - Closed-source, no self-hosting option
-- Reports of ignoring instructions in long multi-step agent flows — mitigated by our simple single-turn tool calling pattern (not a multi-agent pipeline)
+- 204,800 context is generous for this use case but smaller than 1M-context alternatives
 
 **For production:** Swap to Claude Opus for maximum reliability, or Gemini for multimodal needs. The LLM service interface is abstracted — changing the model is a config change (`OPENROUTER_MODEL=anthropic/claude-opus-4-6`), not a code change. For cost optimization at scale, implement a multi-model router: classify question difficulty, route simple queries to a cheaper model (Haiku-class) and complex queries to a stronger model (Opus-class). The interface already supports this — it's a routing layer, not a rewrite.
 
@@ -94,7 +98,7 @@ The OpenRouter provider for the Vercel AI SDK:
 
 ```
 Package: @openrouter/ai-sdk-provider
-Usage: createOpenRouter({ apiKey }) → openrouter.chat('qwen/qwen3.6-plus')
+Usage: createOpenRouter({ apiKey }) → openrouter.chat('minimax/minimax-m2.7')
 ```
 
 The SDK handles:
@@ -106,9 +110,9 @@ The SDK handles:
 
 - OpenRouter API docs: https://openrouter.ai/docs
 - OpenRouter quickstart: https://openrouter.ai/docs/quickstart
-- Qwen 3.6 Plus model page: https://openrouter.ai/qwen/qwen3.6-plus
+- MiniMax M2.7 model page: https://openrouter.ai/minimax/minimax-m2.7
 - Vercel AI SDK docs: https://ai-sdk.dev/docs
 - Vercel AI SDK — OpenRouter provider: https://ai-sdk.dev/providers/community-providers/openrouter
 - Vercel AI SDK — tool calling: https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling
 - Vercel AI SDK — streaming: https://ai-sdk.dev/docs/ai-sdk-core/generating-text
-- Qwen3 official blog: https://qwen.ai/blog?id=qwen3
+- MiniMax official site: https://www.minimaxi.com

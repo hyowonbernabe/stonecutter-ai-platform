@@ -15,7 +15,7 @@ flowchart TB
         API -->|messages + tools| LLM
 
         subgraph LLMLayer["LLM Layer"]
-            LLM["Qwen 3.6 Plus<br>via OpenRouter<br>(tool calling)"]
+            LLM["MiniMax M2.7<br>via OpenRouter<br>(tool calling)"]
         end
 
         LLM -->|tool call| QueryDB["query_database"]
@@ -40,7 +40,7 @@ sequenceDiagram
     participant User
     participant UI as Dashboard + Chat UI
     participant API as /api/chat
-    participant LLM as Qwen 3.6 Plus
+    participant LLM as MiniMax M2.7
     participant DB as SQLite
     participant Search as Orama (Hybrid)
     participant Comp as Regex Engine
