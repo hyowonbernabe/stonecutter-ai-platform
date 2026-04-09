@@ -68,11 +68,8 @@ SQL: SELECT strftime('%Y-%m', s.date) as month, SUM(s.active_subscribers) as act
 Q: "Compare new vs returning customers by brand this year"
 SQL: SELECT cm.brand, SUM(cm.new_customers) as new_custs, SUM(cm.returning_customers) as returning_custs FROM customer_metrics cm WHERE cm.date >= '2025-01-01' GROUP BY cm.brand
 
-Q: "How did TailWag's revenue compare between Q4 2025 and Q1 2025?"
-SQL: SELECT CASE WHEN ds.date >= '2025-10-01' AND ds.date <= '2025-12-31' THEN 'Q4 2025' WHEN ds.date >= '2025-01-01' AND ds.date <= '2025-03-31' THEN 'Q1 2025' END as quarter, SUM(ds.revenue) as revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'TailWag Pet Wellness' AND (ds.date BETWEEN '2025-01-01' AND '2025-03-31' OR ds.date BETWEEN '2025-10-01' AND '2025-12-31') GROUP BY quarter
-
-Q: "What was TailWag's revenue last month?"
-SQL: SELECT SUM(ds.revenue) as total_revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'TailWag Pet Wellness' AND ds.date >= '2026-02-01' AND ds.date <= '2026-02-28'
+Q: "How did GlowHaven's ad spend change between Q3 and Q4 2025?"
+SQL: SELECT CASE WHEN a.date >= '2025-07-01' AND a.date <= '2025-09-30' THEN 'Q3 2025' WHEN a.date >= '2025-10-01' AND a.date <= '2025-12-31' THEN 'Q4 2025' END as quarter, SUM(a.spend) as total_spend FROM advertising a JOIN products p ON a.asin = p.asin WHERE p.brand = 'GlowHaven Skincare' AND a.date BETWEEN '2025-07-01' AND '2025-12-31' GROUP BY quarter
 `.trim();
 
 // ---------------------------------------------------------------------------
