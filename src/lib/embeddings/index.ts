@@ -11,10 +11,17 @@ async function getExtractor(): Promise<FeatureExtractionPipeline> {
   return extractor;
 }
 
+const BATCH_SIZE = 32;
+
 export async function embedTexts(texts: string[]): Promise<number[][]> {
   const ext = await getExtractor();
-  const output = await ext(texts, { pooling: 'mean', normalize: true });
-  return output.tolist() as number[][];
+  const results: number[][] = [];
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    const output = await ext(batch, { pooling: 'mean', normalize: true });
+    results.push(...(output.tolist() as number[][]));
+  }
+  return results;
 }
 
 export async function embedQuery(query: string): Promise<number[]> {

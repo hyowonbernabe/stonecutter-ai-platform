@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { create, insertMultiple, search, getByID } from '@orama/orama';
+import { create, insertMultiple, search } from '@orama/orama';
 import type { AnyOrama } from '@orama/orama';
 import { persistToFile, restoreFromFile } from '@orama/plugin-data-persistence/server';
 import { chunkDocuments, type Chunk } from './chunker';
 import { contextualizeChunk } from './contextualizer';
 import { embedDocuments, embedQuery } from '../embeddings';
+import { env } from '../config/env';
 
 // ---------------------------------------------------------------------------
 // Schema & types
@@ -89,20 +90,27 @@ export async function initializeSearchIndex(): Promise<void> {
     sourceTexts.set(file, text);
   }
 
-  // Step 3: Contextualize each chunk
-  console.log('[search] Generating contextual prefixes...');
+  // Step 3: Contextualize each chunk (requires API key)
   const contextualizedTexts: string[] = [];
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-    const docText = sourceTexts.get(chunk.source) ?? '';
-    const contextualized = await contextualizeChunk(docText, chunk.content);
-    contextualizedTexts.push(contextualized);
+  if (env.OPENROUTER_API_KEY) {
+    console.log('[search] Generating contextual prefixes...');
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const docText = sourceTexts.get(chunk.source) ?? '';
+      const contextualized = await contextualizeChunk(docText, chunk.content);
+      contextualizedTexts.push(contextualized);
 
-    if ((i + 1) % 10 === 0) {
-      console.log(`[search] Contextualized ${i + 1}/${chunks.length} chunks.`);
+      if ((i + 1) % 10 === 0) {
+        console.log(`[search] Contextualized ${i + 1}/${chunks.length} chunks.`);
+      }
+    }
+    console.log(`[search] Contextualized all ${chunks.length} chunks.`);
+  } else {
+    console.warn('[search] OPENROUTER_API_KEY not set. Skipping contextual retrieval.');
+    for (const chunk of chunks) {
+      contextualizedTexts.push(chunk.content);
     }
   }
-  console.log(`[search] Contextualized all ${chunks.length} chunks.`);
 
   // Step 4: Embed all contextualized chunks
   console.log('[search] Generating embeddings...');
@@ -123,7 +131,7 @@ export async function initializeSearchIndex(): Promise<void> {
     isParent: chunk.isParent,
   }));
 
-  insertMultiple(db, docs);
+  await insertMultiple(db, docs);
 
   // Step 6: Persist to disk
   console.log('[search] Persisting index to disk...');
@@ -197,17 +205,7 @@ export async function searchKnowledgeBase(
         source = parentFromMap.source;
         section = parentFromMap.headers;
       } else {
-        // Fallback: look up in the Orama DB
-        const parentDoc = getByID(db, parentChunkId) as Record<string, unknown> | undefined;
-        if (parentDoc) {
-          const parentKey = parentChunkId;
-          if (seen.has(parentKey)) continue;
-          seen.add(parentKey);
-
-          content = parentDoc.chunk as string;
-          source = parentDoc.source as string;
-          section = parentDoc.headers as string;
-        }
+        console.warn(`[search] Parent chunk not found in map: ${parentChunkId}`);
       }
     } else if (isParent) {
       // Use the chunk map ID for deduplication (consistent with child resolution)
