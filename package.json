@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup": "python3 setup-test-database.py",
+    "eval": "promptfoo eval",
+    "eval:tier1": "promptfoo eval --filter-pattern tier1",
+    "eval:tier2": "promptfoo eval --filter-pattern tier2",
+    "eval:tier3": "promptfoo eval --filter-pattern tier3"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
