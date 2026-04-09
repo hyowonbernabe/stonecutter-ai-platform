@@ -49,8 +49,12 @@ const ALL_TABLES = new Set(Object.keys(VALID_TABLES));
 // ---------------------------------------------------------------------------
 
 const FEW_SHOT_EXAMPLES = `
+IMPORTANT: The database contains data from January 2025 through February 2026 only.
+NEVER use date('now') or any relative date functions — they return dates outside the data range.
+Always use absolute date strings. "Last month" = February 2026. "This year" = 2025-01-01 to 2026-02-28.
+
 Q: "What was the total revenue for PureVita Supplements last month?"
-SQL: SELECT SUM(ds.revenue) as total_revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'PureVita Supplements' AND ds.date >= date('now', 'start of month', '-1 month') AND ds.date < date('now', 'start of month')
+SQL: SELECT SUM(ds.revenue) as total_revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'PureVita Supplements' AND ds.date >= '2026-02-01' AND ds.date <= '2026-02-28'
 
 Q: "Which product has the highest number of units ordered?"
 SQL: SELECT p.title, SUM(ds.units_ordered) as total_units FROM daily_sales ds JOIN products p ON ds.asin = p.asin GROUP BY p.title ORDER BY total_units DESC LIMIT 1
@@ -63,6 +67,12 @@ SQL: SELECT strftime('%Y-%m', s.date) as month, SUM(s.active_subscribers) as act
 
 Q: "Compare new vs returning customers by brand this year"
 SQL: SELECT cm.brand, SUM(cm.new_customers) as new_custs, SUM(cm.returning_customers) as returning_custs FROM customer_metrics cm WHERE cm.date >= '2025-01-01' GROUP BY cm.brand
+
+Q: "How did TailWag's revenue compare between Q4 2025 and Q1 2025?"
+SQL: SELECT CASE WHEN ds.date >= '2025-10-01' AND ds.date <= '2025-12-31' THEN 'Q4 2025' WHEN ds.date >= '2025-01-01' AND ds.date <= '2025-03-31' THEN 'Q1 2025' END as quarter, SUM(ds.revenue) as revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'TailWag Pet Wellness' AND (ds.date BETWEEN '2025-01-01' AND '2025-03-31' OR ds.date BETWEEN '2025-10-01' AND '2025-12-31') GROUP BY quarter
+
+Q: "What was TailWag's revenue last month?"
+SQL: SELECT SUM(ds.revenue) as total_revenue FROM daily_sales ds JOIN products p ON ds.asin = p.asin WHERE p.brand = 'TailWag Pet Wellness' AND ds.date >= '2026-02-01' AND ds.date <= '2026-02-28'
 `.trim();
 
 // ---------------------------------------------------------------------------
@@ -73,6 +83,15 @@ function buildPrompt(question: string, sampleRows: string, errorFeedback?: strin
   const schema = getSchema();
 
   let prompt = `You are a SQL expert for an Amazon brand management agency. Generate SQLite-compatible SELECT queries only.
+
+## CRITICAL: Data Date Range
+
+The database contains data from **January 2025 through February 2026** ONLY.
+- NEVER use date('now'), date('now', ...), or any relative date functions.
+- "Last month" = February 2026 (use dates '2026-02-01' to '2026-02-28').
+- "This month" = February 2026.
+- "This year" = January 2025 through February 2026.
+- Always use absolute date strings like '2026-02-01'.
 
 ## Database Schema
 
