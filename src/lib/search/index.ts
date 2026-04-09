@@ -210,13 +210,12 @@ export async function searchKnowledgeBase(
         }
       }
     } else if (isParent) {
-      // Deduplicate parents that appear directly
-      const hitId = hit.id;
-      if (seen.has(hitId)) continue;
-      seen.add(hitId);
-
-      // Use original content from chunk map if available
+      // Use the chunk map ID for deduplication (consistent with child resolution)
       const originalChunk = findChunkBySourceAndIndex(source, doc.chunkIndex as number, true);
+      const dedupeKey = originalChunk?.id ?? hit.id;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+
       if (originalChunk) {
         content = originalChunk.content;
       }
