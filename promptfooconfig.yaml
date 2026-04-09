@@ -1,0 +1,125 @@
+# PromptFoo evaluation config — Stonecutter AI Platform
+# Run: npm run eval (all tiers) or npm run eval:tier1 (rubric only)
+
+prompts:
+  - '{{question}}'
+
+providers:
+  - id: file://eval/providers/chat-provider.ts
+    label: chat
+
+tests:
+  # =========================================================================
+  # TIER 1: Rubric Questions (Must Pass)
+  # =========================================================================
+
+  # --- Data Questions ---
+
+  - description: 'tier1:D1 — TailWag total revenue January 2026'
+    vars:
+      question: "What was TailWag's total revenue in January 2026?"
+    assert:
+      - type: icontains
+        value: 'TailWag'
+      - type: icontains
+        value: '199'
+      - type: icontains
+        value: 'SELECT'
+      - type: llm-rubric
+        value: 'The response should contain a specific dollar amount for TailWag Pet Wellness revenue in January 2026, derived from a SQL query. The amount should be approximately $199,000. The SQL query should be shown.'
+
+  - description: 'tier1:D2 — Highest advertising spend last quarter'
+    vars:
+      question: 'Which brand had the highest advertising spend last quarter?'
+    assert:
+      - type: icontains
+        value: 'PureVita'
+      - type: icontains
+        value: 'SELECT'
+      - type: llm-rubric
+        value: 'The response should name a specific brand as the highest ad spender, show a dollar amount, and include the SQL query. PureVita Supplements is the correct answer for Q4 2025.'
+
+  - description: 'tier1:D3 — GlowHaven top 3 products by units sold'
+    vars:
+      question: "Show me GlowHaven's top 3 products by units sold"
+    assert:
+      - type: icontains
+        value: 'Vitamin C Serum'
+      - type: icontains
+        value: 'SELECT'
+      - type: javascript
+        value: |
+          // Must contain at least 2 of the 3 expected products
+          const lower = output.toLowerCase();
+          const hits = [
+            lower.includes('vitamin c serum'),
+            lower.includes('sunscreen') || lower.includes('spf'),
+            lower.includes('cleanser'),
+          ].filter(Boolean).length;
+          return hits >= 2;
+      - type: llm-rubric
+        value: 'The response should list exactly 3 GlowHaven Skincare products ranked by units sold, with unit counts, and show the SQL query.'
+
+  # --- Knowledge Questions ---
+
+  - description: 'tier1:K1 — S&S cancellation rate hits 3%'
+    vars:
+      question: "What should I do when S&S cancellation rate hits 3%?"
+    assert:
+      - type: icontains
+        value: 'Source'
+      - type: llm-rubric
+        value: 'The response should reference specific steps from the SOP (Subscribe & Save management document), such as checking recent changes, reviewing pricing, contacting support, or escalation steps. It should cite the source document.'
+
+  - description: 'tier1:K2 — Compliance check on treats joint pain'
+    vars:
+      question: "Is it okay to say 'treats joint pain' in a dog supplement listing?"
+    assert:
+      - type: icontains
+        value: 'compliance'
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('non-compliant') || lower.includes('not compliant') ||
+                 lower.includes('violation') || lower.includes('prohibited') ||
+                 lower.includes('not okay') || lower.includes('should not') ||
+                 lower.includes('restricted') || lower.includes('avoid');
+      - type: icontains
+        value: 'supports joint comfort'
+      - type: llm-rubric
+        value: 'The response should flag "treats joint pain" as non-compliant, reference the compliance guide, and suggest the approved alternative "supports joint comfort and flexibility."'
+
+  - description: 'tier1:K3 — TailWag brand voice'
+    vars:
+      question: "What's TailWag's brand voice like?"
+    assert:
+      - type: icontains
+        value: 'Source'
+      - type: llm-rubric
+        value: 'The response should describe TailWag brand voice characteristics such as warm, credible, vet-formulated, transparent about ingredients, and approachable. It should cite the brand voice guide as the source.'
+
+  # --- Hybrid Questions ---
+
+  - description: 'tier1:H1 — TailWag Calming Treats subscription churn spike'
+    vars:
+      question: "TailWag Calming Treats had a subscription churn spike in September 2025. What happened and what should we do?"
+    assert:
+      - type: icontains
+        value: 'SELECT'
+      - type: icontains
+        value: 'Source'
+      - type: llm-rubric
+        value: 'The response should: (1) show subscription/churn data from the database with a SQL query, confirming the spike in September 2025, (2) reference the S&S SOP for recommended response steps, and (3) synthesize both data and procedural guidance into actionable advice.'
+
+  - description: "tier1:H2 — GlowHaven Retinol Buy Box percentage drop"
+    vars:
+      question: "GlowHaven Retinol Night Cream's Buy Box percentage dropped starting October 2025. How bad is it and what are the likely causes?"
+    assert:
+      - type: icontains
+        value: 'SELECT'
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('buy box') || lower.includes('buy_box');
+      - type: llm-rubric
+        value: 'The response should: (1) show Buy Box data from the database confirming the drop from ~94% to ~65% starting October 2025, (2) provide context about likely causes (competitor pricing, FBA issues, stock problems), and (3) include both SQL query and source citations.'

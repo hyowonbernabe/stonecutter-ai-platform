@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { searchKnowledgeBaseTool } from '../../src/lib/tools/search-knowledge-base';
+import { searchKnowledgeBaseTool } from '../../src/lib/tools/search-knowledge-base.ts';
 
 interface ProviderOptions {
   id?: string;

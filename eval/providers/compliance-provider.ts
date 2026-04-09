@@ -1,4 +1,4 @@
-import { checkComplianceTool } from '../../src/lib/tools/check-compliance';
+import { checkComplianceTool } from '../../src/lib/tools/check-compliance.ts';
 
 interface ProviderOptions {
   id?: string;

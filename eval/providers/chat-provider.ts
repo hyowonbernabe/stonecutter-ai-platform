@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import { generateText, isStepCount } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { SYSTEM_PROMPT } from '../../src/prompts/system';
-import { aiTools } from '../../src/lib/llm/tools';
-import { env, validateEnv } from '../../src/lib/config/env';
+import { SYSTEM_PROMPT } from '../../src/prompts/system.ts';
+import { aiTools } from '../../src/lib/llm/tools.ts';
+import { env, validateEnv } from '../../src/lib/config/env.ts';
 
 interface ProviderOptions {
   id?: string;
@@ -37,7 +37,7 @@ export default class ChatProvider {
         system: SYSTEM_PROMPT,
         prompt,
         tools: aiTools,
-        stopWhen: isStepCount(5),
+        stopWhen: stepCountIs(5),
       });
 
       return { output: text };
