@@ -197,6 +197,9 @@
 .sd-markdown {
   color: oklch(0.93 0.01 250);
   line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .sd-markdown p {
