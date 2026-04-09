@@ -33,48 +33,46 @@ export function ChatMessage({ role, parts, isStreaming }: ChatMessageProps) {
     );
   }
 
-  // Assistant message — render all parts
+  // Assistant message — full width, no bubble
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[85%] space-y-1">
-        {parts.map((part, i) => {
-          // Tool call parts — type is "tool-{name}"
-          if (part.type.startsWith("tool-")) {
-            const toolName = part.type.slice(5);
-            return (
-              <ToolCallChip
-                key={part.toolCallId ?? i}
-                toolName={toolName}
-                state={part.state ?? "output-available"}
-                input={part.input}
-                output={part.output}
-                errorText={part.errorText}
-              />
-            );
-          }
+    <div className="space-y-2">
+      {parts.map((part, i) => {
+        // Tool call parts — type is "tool-{name}"
+        if (part.type.startsWith("tool-")) {
+          const toolName = part.type.slice(5);
+          return (
+            <ToolCallChip
+              key={part.toolCallId ?? i}
+              toolName={toolName}
+              state={part.state ?? "output-available"}
+              input={part.input}
+              output={part.output}
+              errorText={part.errorText}
+            />
+          );
+        }
 
-          // Text parts — render with Streamdown
-          if (part.type === "text" && part.text) {
-            return (
-              <div
-                key={i}
-                className="rounded-xl rounded-bl-sm border border-border bg-card px-3.5 py-2.5 text-sm text-card-foreground"
+        // Text parts — render with Streamdown, no bubble
+        if (part.type === "text" && part.text) {
+          return (
+            <div
+              key={i}
+              className="text-sm text-foreground"
+            >
+              <Streamdown
+                plugins={{ code }}
+                isAnimating={isStreaming && part.state === "streaming"}
+                caret={isStreaming && part.state === "streaming" ? "block" : undefined}
+                linkSafety={{ enabled: false }}
               >
-                <Streamdown
-                  plugins={{ code }}
-                  isAnimating={isStreaming && part.state === "streaming"}
-                  caret={isStreaming && part.state === "streaming" ? "block" : undefined}
-                  linkSafety={{ enabled: false }}
-                >
-                  {part.text}
-                </Streamdown>
-              </div>
-            );
-          }
+                {part.text}
+              </Streamdown>
+            </div>
+          );
+        }
 
-          return null;
-        })}
-      </div>
+        return null;
+      })}
     </div>
   );
 }
