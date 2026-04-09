@@ -248,8 +248,7 @@ tests:
   # =========================================================================
 
   - description: 'tier3:R1 — Retrieval for cancellation rate SOP'
-    options:
-      provider: file://eval/providers/rag-provider.ts
+    provider: file://eval/providers/rag-provider.ts
     vars:
       question: 'cancellation rate above 3%'
     assert:
@@ -261,8 +260,7 @@ tests:
           return data.chunks.length > 0 && data.chunks[0].source === 'sop-subscribe-and-save-management.md';
 
   - description: 'tier3:R2 — Retrieval for compliance on treats joint pain'
-    options:
-      provider: file://eval/providers/rag-provider.ts
+    provider: file://eval/providers/rag-provider.ts
     vars:
       question: 'treats joint pain'
     assert:
@@ -270,8 +268,7 @@ tests:
         value: 'compliance-amazon-restricted-language.md'
 
   - description: 'tier3:R3 — Retrieval for TailWag brand voice'
-    options:
-      provider: file://eval/providers/rag-provider.ts
+    provider: file://eval/providers/rag-provider.ts
     vars:
       question: 'TailWag brand voice'
     assert:
@@ -279,8 +276,7 @@ tests:
         value: 'brand-voice-guide-tailwag.md'
 
   - description: 'tier3:R4 — Retrieval for Zesty Paws competitor'
-    options:
-      provider: file://eval/providers/rag-provider.ts
+    provider: file://eval/providers/rag-provider.ts
     vars:
       question: 'Zesty Paws competitor analysis'
     assert:
@@ -292,8 +288,7 @@ tests:
   # =========================================================================
 
   - description: 'tier3:C1 — Flags prohibited verb treats'
-    options:
-      provider: file://eval/providers/compliance-provider.ts
+    provider: file://eval/providers/compliance-provider.ts
     vars:
       question: 'Treats hip and joint pain in dogs'
     assert:
@@ -308,8 +303,7 @@ tests:
           return data.isCompliant === false;
 
   - description: 'tier3:C2 — Passes approved language'
-    options:
-      provider: file://eval/providers/compliance-provider.ts
+    provider: file://eval/providers/compliance-provider.ts
     vars:
       question: 'Supports joint comfort and flexibility'
     assert:
@@ -319,8 +313,7 @@ tests:
           return data.isCompliant === true && data.violations.length === 0;
 
   - description: 'tier3:C3 — Flags multiple violations'
-    options:
-      provider: file://eval/providers/compliance-provider.ts
+    provider: file://eval/providers/compliance-provider.ts
     vars:
       question: 'Prevents heart disease and cures diabetes'
     assert:
@@ -336,8 +329,7 @@ tests:
           return data.violations.length >= 4;
 
   - description: 'tier3:C4 — Known false positive on non-health context'
-    options:
-      provider: file://eval/providers/compliance-provider.ts
+    provider: file://eval/providers/compliance-provider.ts
     vars:
       question: 'This prevents stacking of boxes during shipping'
     assert:
