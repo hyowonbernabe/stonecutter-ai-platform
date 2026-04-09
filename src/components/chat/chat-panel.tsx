@@ -23,16 +23,21 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ onClose, width }: ChatPanelProps) {
-  const [store, setStore] = useState<ChatSessionStore>(() => {
+  // Start with empty state for SSR, hydrate from localStorage on mount
+  const [store, setStore] = useState<ChatSessionStore>({ activeId: "", sessions: [] });
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
     const loaded = loadStore();
     if (loaded.sessions.length === 0) {
-      return createSession(loaded);
+      setStore(createSession(loaded));
+    } else if (!loaded.activeId || !loaded.sessions.find((s) => s.id === loaded.activeId)) {
+      setStore({ ...loaded, activeId: loaded.sessions[0].id });
+    } else {
+      setStore(loaded);
     }
-    if (!loaded.activeId || !loaded.sessions.find((s) => s.id === loaded.activeId)) {
-      return { ...loaded, activeId: loaded.sessions[0].id };
-    }
-    return loaded;
-  });
+    setHydrated(true);
+  }, []);
 
   const [showHistory, setShowHistory] = useState(false);
   const activeSession = getActiveSession(store);
@@ -84,7 +89,7 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
         </button>
 
         <span className="flex-1 text-sm font-semibold text-foreground truncate">
-          {activeSession?.title ?? "AI Assistant"}
+          {hydrated ? (activeSession?.title ?? "AI Assistant") : "AI Assistant"}
         </span>
 
         <button
@@ -104,8 +109,10 @@ export function ChatPanel({ onClose, width }: ChatPanelProps) {
         </button>
       </div>
 
-      {/* Body */}
-      {showHistory ? (
+      {/* Body — wait for hydration before rendering chat */}
+      {!hydrated ? (
+        <div className="flex-1" />
+      ) : showHistory ? (
         <ChatHistory
           sessions={store.sessions}
           activeId={store.activeId}

@@ -21,6 +21,7 @@ import {
   Package,
   Settings,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const navItems = [
   { title: "Overview", icon: LayoutDashboard, isActive: true },
@@ -54,6 +55,13 @@ export function AppSidebar() {
                     isActive={item.isActive}
                     tooltip={item.title}
                     className={item.isActive ? "border-l-2 border-primary bg-sidebar-accent" : ""}
+                    onClick={() => {
+                      if (!item.isActive) {
+                        toast(`${item.title} is not available in this demo`, {
+                          description: "This section is out of scope for the skills test.",
+                        });
+                      }
+                    }}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
@@ -67,7 +75,14 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Settings">
+            <SidebarMenuButton
+              tooltip="Settings"
+              onClick={() => {
+                toast("Settings is not available in this demo", {
+                  description: "This section is out of scope for the skills test.",
+                });
+              }}
+            >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </SidebarMenuButton>
