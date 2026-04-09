@@ -30,6 +30,11 @@ export default class ChatProvider {
     try {
       validateEnv();
 
+      // Handle empty/whitespace input gracefully
+      if (!prompt.trim()) {
+        return { output: 'It looks like your message was empty. How can I help you? I can assist with sales data, knowledge base lookups, and compliance reviews for PureVita, GlowHaven, and TailWag.' };
+      }
+
       const openrouter = createOpenRouter({ apiKey: env.OPENROUTER_API_KEY });
 
       const result = await generateText({
