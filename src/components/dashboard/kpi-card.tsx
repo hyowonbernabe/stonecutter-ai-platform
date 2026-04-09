@@ -11,8 +11,9 @@ export function KpiCard({ label, value, detail, detailColor = "text-muted-foregr
       <p className="text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-tight text-card-foreground"
-         style={{ fontVariantNumeric: "tabular-nums" }}>
+      <p className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-tight text-card-foreground truncate"
+         style={{ fontVariantNumeric: "tabular-nums" }}
+         title={value}>
         {value}
       </p>
       {detail && (

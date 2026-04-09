@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
@@ -14,12 +14,20 @@ import { AdPerformanceChart } from "@/components/dashboard/ad-performance-chart"
 import { SubscriptionChart } from "@/components/dashboard/subscription-chart";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
+const CHAT_MIN_WIDTH = 300;
+const CHAT_MAX_WIDTH = 600;
+const CHAT_DEFAULT_WIDTH = 400;
+
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(undefined);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const chartsRef = useRef<HTMLDivElement>(null);
   const chartsAnimated = useRef(false);
+
+  // Resize state
+  const [chatWidth, setChatWidth] = useState(CHAT_DEFAULT_WIDTH);
+  const isResizing = useRef(false);
 
   useEffect(() => {
     if (chartsRef.current && !chartsAnimated.current) {
@@ -32,6 +40,33 @@ export default function Home() {
       );
     }
   }, []);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    const startX = e.clientX;
+    const startWidth = chatWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizing.current) return;
+      const delta = startX - moveEvent.clientX;
+      const newWidth = Math.min(CHAT_MAX_WIDTH, Math.max(CHAT_MIN_WIDTH, startWidth + delta));
+      setChatWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [chatWidth]);
 
   return (
     <>
@@ -66,9 +101,17 @@ export default function Home() {
               </div>
             </main>
 
-            {/* Chat panel — inline on desktop, Sheet overlay on mobile */}
+            {/* Chat panel with resize handle — desktop only */}
             {isChatOpen && !isMobile && (
-              <ChatPanel onClose={() => setIsChatOpen(false)} />
+              <div className="relative flex">
+                {/* Resize handle */}
+                <div
+                  onMouseDown={handleResizeStart}
+                  className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 hover:bg-primary/30 active:bg-primary/50 transition-colors"
+                  aria-label="Resize chat panel"
+                />
+                <ChatPanel onClose={() => setIsChatOpen(false)} width={chatWidth} />
+              </div>
             )}
             {isMobile && (
               <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>

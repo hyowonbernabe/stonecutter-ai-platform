@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { X, ArrowUp } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "./chat-message";
 import { StarterPrompts } from "./starter-prompts";
 
 interface ChatPanelProps {
   onClose: () => void;
+  width?: number;
 }
 
-export function ChatPanel({ onClose }: ChatPanelProps) {
+export function ChatPanel({ onClose, width }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isUserScrolledUp = useRef(false);
 
   const { messages, sendMessage, status, stop, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -22,16 +23,34 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
 
   const isStreaming = status === "streaming";
 
-  // Auto-scroll to bottom on new messages
+  // Detect if user has scrolled up from bottom
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isUserScrolledUp.current = distanceFromBottom > 60;
+  }, []);
+
+  // Auto-scroll to bottom when messages change, unless user scrolled up
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const el = scrollRef.current;
+    if (!el) return;
+    if (!isUserScrolledUp.current) {
+      el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
+
+  // When streaming starts, reset scroll lock so new responses auto-scroll
+  useEffect(() => {
+    if (isStreaming) {
+      isUserScrolledUp.current = false;
+    }
+  }, [isStreaming]);
 
   function handleSend(text?: string) {
     const message = text ?? input.trim();
     if (!message) return;
+    isUserScrolledUp.current = false;
     sendMessage({ text: message });
     setInput("");
   }
@@ -43,8 +62,13 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     }
   }
 
+  const panelStyle = width ? { width: `${width}px`, minWidth: `${Math.min(width, 300)}px` } : {};
+
   return (
-    <div className="flex h-full w-[400px] min-w-[400px] flex-col border-l border-border bg-sidebar">
+    <div
+      className="flex h-full w-[400px] min-w-[300px] max-w-[600px] flex-col border-l border-border bg-sidebar"
+      style={panelStyle}
+    >
       {/* Header */}
       <div className="flex h-12 items-center justify-between border-b border-border px-4">
         <span className="text-sm font-semibold text-foreground">
@@ -59,8 +83,12 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         </button>
       </div>
 
-      {/* Message area */}
-      <ScrollArea className="flex-1" ref={scrollRef}>
+      {/* Message area — native scroll div instead of ScrollArea */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto"
+      >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[400px]">
             <StarterPrompts onSelect={handleSend} />
@@ -86,7 +114,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             )}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Input area */}
       <div className="border-t border-border p-3">
