@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("dark font-sans antialiased", geist.variable)}>
-      <body>{children}</body>
+      <body>
+        <SidebarProvider>{children}</SidebarProvider>
+      </body>
     </html>
   );
 }
