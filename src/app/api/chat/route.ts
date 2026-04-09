@@ -2,10 +2,11 @@ import { streamText, convertToModelMessages, stepCountIs, type UIMessage } from 
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { SYSTEM_PROMPT } from '@/prompts/system';
 import { aiTools } from '@/lib/llm/tools';
-import { env } from '@/lib/config/env';
+import { env, validateEnv } from '@/lib/config/env';
 
 export async function POST(req: Request) {
   try {
+    validateEnv();
     const { messages }: { messages: UIMessage[] } = await req.json();
 
     // Sliding window: keep last 20 messages (system prompt is separate)
