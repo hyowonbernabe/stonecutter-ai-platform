@@ -79,7 +79,7 @@ src/
 ## Key Decisions
 
 - **Orama replaces ChromaDB + MiniSearch** — one library handles vector, BM25, and hybrid search
-- **Schema always injected** into SQL prompts — Qwen has ~26.5% code hallucination rate, never let it guess columns
+- **Schema always injected** into SQL prompts — LLMs hallucinate column names without it, never let the model guess
 - **nomic task prefixes required** — `search_document:` for docs, `search_query:` for queries
 - **Compliance in system prompt** — no separate LLM call, regex is the deterministic safety net
 - **Sliding window 20 messages** — follow-ups are sequential deltas, not topic recalls
@@ -98,8 +98,10 @@ OPENROUTER_MODEL=minimax/minimax-m2.7 # Optional, defaults to this
 ```
 npm run dev          # Start dev server (Turbopack)
 npm run setup        # Generate SQLite database
-npm run eval         # Run full PromptFoo suite
-npm run eval:tier1   # Rubric questions only
+npm run eval         # Run full PromptFoo suite (27 tests)
+npm run eval:tier1   # Rubric questions only (8 tests)
+npm run eval:tier2   # Edge case tests (6 tests)
+npm run eval:tier3   # Component tests — SQL, RAG, compliance (13 tests)
 ```
 
 ## Build Order (Roadmap)

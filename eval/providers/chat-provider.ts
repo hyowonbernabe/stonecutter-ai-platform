@@ -42,7 +42,7 @@ export default class ChatProvider {
         system: SYSTEM_PROMPT,
         prompt,
         tools: aiTools,
-        stopWhen: stepCountIs(10),
+        stopWhen: stepCountIs(5),
       });
 
       // Primary: use the final synthesized text
