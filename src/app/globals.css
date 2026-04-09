@@ -152,3 +152,106 @@
     @apply font-sans;
   }
 }
+
+/* Tabular nums on chart axes and all numeric displays */
+[data-chart] text,
+[data-chart] tspan {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Streamdown dark theme overrides */
+.sd-caret-block {
+  background-color: oklch(0.62 0.17 250);
+}
+
+.sd-markdown {
+  color: oklch(0.93 0.01 250);
+  line-height: 1.5;
+}
+
+.sd-markdown p {
+  margin-bottom: 0.5em;
+}
+
+.sd-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.sd-markdown strong {
+  color: oklch(0.96 0.008 250);
+  font-weight: 600;
+}
+
+.sd-markdown code:not(pre code) {
+  background: oklch(0.16 0.01 250);
+  border: 1px solid oklch(0.25 0.01 250);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+}
+
+.sd-markdown pre {
+  background: oklch(0.14 0.01 250);
+  border: 1px solid oklch(0.25 0.01 250);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.5em 0;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+}
+
+.sd-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.sd-markdown ul, .sd-markdown ol {
+  padding-left: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.sd-markdown li {
+  margin-bottom: 0.25em;
+}
+
+.sd-markdown h1, .sd-markdown h2, .sd-markdown h3 {
+  color: oklch(0.96 0.008 250);
+  font-weight: 600;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+}
+
+.sd-markdown a {
+  color: oklch(0.72 0.12 250);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sd-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.8125rem;
+}
+
+.sd-markdown th, .sd-markdown td {
+  border: 1px solid oklch(0.25 0.01 250);
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+}
+
+.sd-markdown th {
+  background: oklch(0.16 0.01 250);
+  font-weight: 600;
+}
+
+.sd-markdown blockquote {
+  border-left: 3px solid oklch(0.62 0.17 250);
+  padding-left: 0.75em;
+  color: oklch(0.70 0.01 250);
+  margin: 0.5em 0;
+}

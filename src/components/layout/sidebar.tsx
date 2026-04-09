@@ -50,7 +50,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton isActive={item.isActive} tooltip={item.title}>
+                  <SidebarMenuButton
+                    isActive={item.isActive}
+                    tooltip={item.title}
+                    className={item.isActive ? "border-l-2 border-primary bg-sidebar-accent" : ""}
+                  >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>

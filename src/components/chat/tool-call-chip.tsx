@@ -72,7 +72,7 @@ function ToolOutput({ toolName, output }: { toolName: string; output: unknown })
           </div>
         )}
         {data.rowCount !== undefined && (
-          <Badge variant="secondary" className="text-xs font-normal">
+          <Badge variant="secondary" className="text-xs font-normal" style={{ fontVariantNumeric: "tabular-nums" }}>
             {data.rowCount} row{data.rowCount !== 1 ? "s" : ""} returned
           </Badge>
         )}

@@ -52,7 +52,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         </span>
         <button
           onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          aria-label="Close chat panel"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="h-4 w-4" />
         </button>
@@ -60,11 +61,13 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
 
       {/* Message area */}
       <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4">
-          {messages.length === 0 ? (
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full min-h-[400px]">
             <StarterPrompts onSelect={handleSend} />
-          ) : (
-            messages.map((message) => (
+          </div>
+        ) : (
+          <div className="p-4 space-y-4">
+            {messages.map((message) => (
               <ChatMessage
                 key={message.id}
                 role={message.role as "user" | "assistant"}
@@ -75,19 +78,19 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
                   message.role === "assistant"
                 }
               />
-            ))
-          )}
-          {error && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-              {error.message ?? "Something went wrong. Please try again."}
-            </div>
-          )}
-        </div>
+            ))}
+            {error && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                {error.message ?? "Something went wrong. Please try again."}
+              </div>
+            )}
+          </div>
+        )}
       </ScrollArea>
 
       {/* Input area */}
       <div className="border-t border-border p-3">
-        <div className="flex items-end gap-2 rounded-lg border border-input bg-background p-1">
+        <div className="flex items-end gap-2 rounded-lg border border-input bg-background p-1 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-[box-shadow]">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -100,7 +103,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           {isStreaming ? (
             <button
               onClick={() => stop()}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              aria-label="Stop generating"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="h-3 w-3 rounded-sm bg-current" />
             </button>
@@ -108,7 +112,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             <button
               onClick={() => handleSend()}
               disabled={!input.trim()}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 transition-colors"
+              aria-label="Send message"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ArrowUp className="h-4 w-4" />
             </button>

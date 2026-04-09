@@ -20,9 +20,11 @@ The users are **agency account managers and analysts** who manage brands (TailWa
 
 ## Design Direction
 
-**Internal agency tool / SaaS dashboard aesthetic.** Professional, information-dense, dark or neutral color palette. Not a consumer pet brand website.
+**Internal agency tool / SaaS dashboard aesthetic.** Professional, information-dense, dark-mode-only color palette. Not a consumer pet brand website.
 
 Inspiration: Mixpanel, Amplitude, Triple Whale (e-commerce analytics), Helium 10 (Amazon analytics).
+
+**Dark mode only** — No light mode toggle. Blue-tinted oklch neutrals (hue 250, chroma 0.01-0.012). Design tokens defined in globals.css using `--background` through `--chart-5`.
 
 ## Layout
 
@@ -31,16 +33,17 @@ Inspiration: Mixpanel, Amplitude, Triple Whale (e-commerce analytics), Helium 10
 - **Top nav** — platform branding, brand selector (TailWag / PureVita / GlowHaven), date range filter
 - **Metric cards** — KPI summary cards (total revenue, ad spend, subscriber count, conversion rate)
 - **Charts area** — 1-2 charts showing trends (revenue over time, brand comparison)
-- **Chatbot widget** — bottom-right floating button that opens the AI assistant panel
+- **Chat panel** — 400px right-side collapsible panel with AI assistant (Sheet overlay on mobile)
 
-### Chatbot Widget (expanded)
+### Chat Panel (right-side collapsible)
 
-- Slides up from bottom-right or opens as a side panel
-- Chat message thread with streaming responses
-- Source citations displayed inline and in a collapsible sources section
-- SQL queries shown in collapsible code blocks
-- Compliance violations highlighted with color coding
-- Input box with send button
+- **400px right-side panel**, not a floating bubble. Collapses via close button. Toggle in top bar re-opens it.
+- On mobile (< 768px), renders as a Sheet overlay instead of inline panel.
+- Chat message thread with streaming responses via Streamdown
+- Tool call chips (collapsible) show loading → complete state for query_database, search_knowledge_base, check_compliance
+- Source citations displayed inline. SQL queries shown in collapsible code blocks within tool chips.
+- Compliance violations highlighted with red badge and suggested alternatives
+- Input with Enter-to-send, Shift+Enter for newline. Focus ring on input container. Stop button during streaming.
 
 ## Layered Build Approach
 
@@ -94,6 +97,16 @@ Dashboard charts and metric cards use **static SQLite queries** — not the AI. 
 - Brand comparison (bar chart by revenue)
 
 These queries are served via `/api/dashboard/*` API routes, separate from the `/api/chat` AI route.
+
+## Polish & Animations
+
+- **GSAP entrance animations** — KPI cards stagger on page load (fade up, 50ms delay, power2.out). Charts fade in after KPI strip with 0.3s delay.
+- **Responsive breakpoints** — KPI grid: 2-col on mobile, 4-col on lg. Charts stack to 1-col on small screens, 12-col grid on lg. Chat panel becomes Sheet overlay on < 768px.
+- **Font-variant-numeric** — `tabular-nums` on all numeric displays: KPI values, KPI details, chart axes, date ranges, tool chip row counts.
+- **Chart tooltips** — Formatted currency ($XXK or $X.XXM). X-axis shows month abbreviations (Jan, Feb, etc.).
+- **Streamdown dark theme** — Custom CSS for code blocks, tables, blockquotes on dark background. Colors match design tokens.
+- **Accessibility** — aria-labels on icon-only buttons (close, send, stop, sidebar trigger, chat toggle). focus-visible rings on interactive elements.
+- **Empty states** — Subscription chart shows "No subscription data" when brand has no data (GlowHaven).
 
 ## References
 

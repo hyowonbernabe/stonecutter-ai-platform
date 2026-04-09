@@ -52,7 +52,18 @@ export function AdPerformanceChart({ brand }: { brand?: string }) {
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis dataKey="brand" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value) => {
+                  const n = Number(value);
+                  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+                  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+                  return `$${n.toFixed(0)}`;
+                }}
+              />
+            }
+          />
           <ChartLegend content={<ChartLegendContent />} />
           <Bar dataKey="spend" fill="var(--color-spend)" radius={[4, 4, 0, 0]} />
           <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />

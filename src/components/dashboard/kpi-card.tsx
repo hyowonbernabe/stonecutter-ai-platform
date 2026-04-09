@@ -16,7 +16,7 @@ export function KpiCard({ label, value, detail, detailColor = "text-muted-foregr
         {value}
       </p>
       {detail && (
-        <p className={`mt-1 text-xs font-medium ${detailColor}`}>
+        <p className={`mt-1 text-xs font-medium ${detailColor}`} style={{ fontVariantNumeric: "tabular-nums" }}>
           {detail}
         </p>
       )}

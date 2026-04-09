@@ -47,7 +47,18 @@ export function TopProductsChart({ brand }: { brand?: string }) {
         <BarChart data={chartData} layout="vertical" accessibilityLayer>
           <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
           <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} width={140} tick={{ fontSize: 11 }} />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value) => {
+                  const n = Number(value);
+                  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+                  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+                  return `$${n.toFixed(0)}`;
+                }}
+              />
+            }
+          />
           <Bar dataKey="revenue" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ChartContainer>

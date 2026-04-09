@@ -43,7 +43,11 @@ export function RevenueChart({ brand }: { brand?: string }) {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(v) => v.slice(5)}
+            tickFormatter={(v) => {
+              const [y, m] = String(v).split("-");
+              const date = new Date(Number(y), Number(m) - 1);
+              return date.toLocaleDateString("en-US", { month: "short" });
+            }}
           />
           <YAxis
             tickLine={false}
@@ -51,7 +55,23 @@ export function RevenueChart({ brand }: { brand?: string }) {
             tickMargin={8}
             tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
           />
-          <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => v} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value) => {
+                  const n = Number(value);
+                  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+                  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+                  return `$${n.toFixed(0)}`;
+                }}
+              />
+            }
+            labelFormatter={(v) => {
+              const [y, m] = String(v).split("-");
+              const date = new Date(Number(y), Number(m) - 1);
+              return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+            }}
+          />
           <ChartLegend content={<ChartLegendContent />} />
           {brand ? (
             <Area type="monotone" dataKey="revenue" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.15} strokeWidth={2} />
