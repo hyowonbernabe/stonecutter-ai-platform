@@ -12,9 +12,9 @@ Amazon brand intelligence dashboard for account managers. The embedded AI assist
 
 ## Live Demo
 
-[stonecutter-ai-platform.vercel.app](https://stonecutter-ai-platform.vercel.app) <!-- replace with actual Vercel URL after deploying -->
+[stonecutter-kohl.vercel.app](https://stonecutter-kohl.vercel.app/)
 
-<!-- Add screenshot after deploying: ![Dashboard](docs/screenshot.png) -->
+![Dashboard](docs/screenshot.png)
 
 ### Dataset
 

@@ -9,8 +9,8 @@ node_modules/
 # Generated database (committed for Vercel deployment — only 4MB)
 # data/sample.db
 
-# Orama persistence files
-data/orama/
+# Orama persistence files (committed for Vercel deployment — 736KB)
+# data/orama/
 
 # Transformers.js model cache
 .transformers-cache/

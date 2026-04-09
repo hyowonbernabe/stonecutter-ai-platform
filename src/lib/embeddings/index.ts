@@ -1,11 +1,14 @@
-import { pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers';
+import { pipeline, type FeatureExtractionPipeline, env as transformersEnv } from '@huggingface/transformers';
+
+// Write model files to /tmp so they work in read-only serverless environments (Vercel)
+transformersEnv.cacheDir = '/tmp/.transformers-cache';
 
 let extractor: FeatureExtractionPipeline | null = null;
 
 async function getExtractor(): Promise<FeatureExtractionPipeline> {
   if (!extractor) {
     extractor = await pipeline('feature-extraction', 'nomic-ai/nomic-embed-text-v1.5', {
-      dtype: 'fp32',
+      dtype: 'q8',
     });
   }
   return extractor;
