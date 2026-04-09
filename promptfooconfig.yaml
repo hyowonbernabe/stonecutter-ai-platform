@@ -1,0 +1,379 @@
+# PromptFoo evaluation config — Stonecutter AI Platform
+# Run: npm run eval (all tiers) or npm run eval:tier1 (rubric only)
+
+prompts:
+  - '{{question}}'
+
+providers:
+  - id: file://eval/providers/chat-provider.ts
+    label: chat
+
+defaultTest:
+  options:
+    provider: openai:chat:deepseek/deepseek-v3.2
+
+tests:
+  # =========================================================================
+  # TIER 1: Rubric Questions (Must Pass)
+  # =========================================================================
+
+  # --- Data Questions ---
+
+  - description: 'tier1:D1 — TailWag total revenue January 2026'
+    vars:
+      question: "What was TailWag Pet Wellness's total revenue in January 2026?"
+    assert:
+      - type: icontains
+        value: 'TailWag'
+      - type: icontains
+        value: '199'
+      - type: icontains
+        value: 'SELECT'
+      - type: llm-rubric
+        value: 'The response should contain a specific dollar amount for TailWag Pet Wellness revenue in January 2026, derived from a SQL query. The amount should be approximately $199,000. The SQL query should be shown.'
+
+  - description: 'tier1:D2 — Highest advertising spend last quarter'
+    vars:
+      question: 'Which brand had the highest advertising spend in Q4 2025 (October through December)?'
+    assert:
+      - type: icontains
+        value: 'PureVita'
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('select') || lower.includes('sql') || lower.includes('query');
+      - type: llm-rubric
+        value: 'The response should name PureVita Supplements as the highest ad spender in Q4 2025, show a dollar amount around $111,000, and reference a SQL query.'
+
+  - description: 'tier1:D3 — GlowHaven top 3 products by units sold'
+    vars:
+      question: "Show me GlowHaven's top 3 products by units sold"
+    assert:
+      - type: icontains
+        value: 'Vitamin C Serum'
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('select') || lower.includes('sql') || lower.includes('query');
+      - type: javascript
+        value: |
+          // Must contain at least 2 of the 3 expected products
+          const lower = output.toLowerCase();
+          const hits = [
+            lower.includes('vitamin c serum'),
+            lower.includes('sunscreen') || lower.includes('spf'),
+            lower.includes('cleanser'),
+          ].filter(Boolean).length;
+          return hits >= 2;
+      - type: llm-rubric
+        value: 'The response should list exactly 3 GlowHaven Skincare products ranked by units sold, with unit counts, and show the SQL query.'
+
+  # --- Knowledge Questions ---
+
+  - description: 'tier1:K1 — S&S cancellation rate hits 3%'
+    vars:
+      question: "What should I do when S&S cancellation rate hits 3%?"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('source') || lower.includes('sop') ||
+                 lower.includes('subscribe') || lower.includes('cancellation');
+      - type: llm-rubric
+        value: 'The response should reference specific steps from the SOP (Subscribe & Save management document), such as checking recent changes, reviewing pricing, contacting support, or escalation steps. It should cite the source document.'
+
+  - description: 'tier1:K2 — Compliance check on treats joint pain'
+    vars:
+      question: "Is it okay to say 'treats joint pain' in a dog supplement listing?"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('compliance') || lower.includes('compliant') ||
+                 lower.includes('restricted language') || lower.includes('prohibited');
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('non-compliant') || lower.includes('not compliant') ||
+                 lower.includes('violation') || lower.includes('prohibited') ||
+                 lower.includes('not okay') || lower.includes('should not') ||
+                 lower.includes('restricted') || lower.includes('avoid');
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must suggest an approved alternative phrasing
+          return lower.includes('supports joint comfort') || lower.includes('supports joint') ||
+                 lower.includes('joint comfort') || lower.includes('structure/function') ||
+                 lower.includes('alternative') || lower.includes('instead');
+      - type: llm-rubric
+        value: 'The response should flag "treats joint pain" as non-compliant, reference the compliance guide, and suggest an approved alternative such as "supports joint comfort and flexibility."'
+
+  - description: 'tier1:K3 — TailWag brand voice'
+    vars:
+      question: "What's TailWag's brand voice like?"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('source') || lower.includes('brand voice') ||
+                 lower.includes('guide') || lower.includes('tailwag');
+      - type: llm-rubric
+        value: 'The response should describe TailWag brand voice characteristics such as warm, credible, vet-formulated, transparent about ingredients, and approachable. It should cite the brand voice guide as the source.'
+
+  # --- Hybrid Questions ---
+
+  - description: 'tier1:H1 — TailWag Calming Treats subscription churn spike'
+    vars:
+      question: "TailWag Calming Treats had a subscription churn spike in September 2025. What happened and what should we do?"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must attempt a database query (show SELECT) OR mention subscription/churn data
+          return lower.includes('select') || lower.includes('subscription') || lower.includes('churn');
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must reference the SOP or provide actionable steps
+          return lower.includes('source') || lower.includes('sop') || lower.includes('protocol') ||
+                 lower.includes('cancellation') || lower.includes('action');
+      - type: llm-rubric
+        value: 'The response should show subscription or churn data and provide actionable recommendations for addressing the churn spike. It should ideally reference both database data and SOP guidance, but showing data analysis with practical next steps is sufficient to pass.'
+
+  - description: "tier1:H2 — GlowHaven Retinol Buy Box percentage drop"
+    vars:
+      question: "GlowHaven Retinol Night Cream's Buy Box percentage dropped starting October 2025. How bad is it and what are the likely causes?"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('buy box') || lower.includes('buy_box') || lower.includes('buybox');
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must attempt database query OR discuss the data
+          return lower.includes('select') || lower.includes('query') || lower.includes('database') ||
+                 lower.includes('retinol') || lower.includes('glowhaven');
+      - type: llm-rubric
+        value: 'The response should attempt to pull Buy Box data for GlowHaven Retinol Night Cream from the database AND provide context about likely causes of a Buy Box drop (competitor pricing, FBA issues, stock problems, unauthorized sellers). Even if the exact data is not found, the model should provide useful analysis and recommendations.'
+
+  # =========================================================================
+  # TIER 2: Edge Cases (Should Handle Gracefully)
+  # =========================================================================
+
+  - description: 'tier2:E1 — Non-existent brand'
+    vars:
+      question: 'What was revenue for BrandThatDoesNotExist?'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('purevita') || lower.includes('glowhaven') || lower.includes('tailwag') ||
+                 lower.includes("don't have data") || lower.includes('not found') || lower.includes('no data');
+      - type: not-icontains
+        value: 'error'
+      - type: llm-rubric
+        value: 'The response should gracefully indicate that the brand does not exist in the database and should mention the actual brands available (PureVita, GlowHaven, TailWag). It should NOT crash, hallucinate revenue numbers, or show a raw error.'
+
+  - description: 'tier2:E2 — Empty input'
+    vars:
+      question: ''
+    assert:
+      - type: llm-rubric
+        value: 'The response should either ask the user to provide a question, offer helpful suggestions for what it can do, or politely indicate it needs input. It should NOT crash or return an error.'
+
+  - description: 'tier2:E3 — Gibberish input'
+    vars:
+      question: 'asdfghjkl random gibberish zxcvb'
+    assert:
+      - type: llm-rubric
+        value: 'The response should politely indicate it does not understand the input and ask the user to rephrase. It should NOT crash, hallucinate data, or try to query the database with nonsensical input.'
+
+  - description: 'tier2:E4 — Multi-violation compliance review'
+    vars:
+      question: "Review this listing bullet: 'Cures hip dysplasia in senior dogs'"
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return (lower.includes('cures') || lower.includes('cure')) &&
+                 (lower.includes('hip dysplasia') || lower.includes('dysplasia'));
+      - type: llm-rubric
+        value: 'The response should flag at least two compliance violations: "cures" (prohibited verb) and "hip dysplasia" (prohibited condition). It should suggest compliant alternatives for each.'
+
+  - description: 'tier2:E5 — Follow-up context (TailWag then GlowHaven)'
+    vars:
+      question: "How about GlowHaven?"
+    assert:
+      - type: llm-rubric
+        value: 'Since this is a follow-up without prior context, the model should either ask for clarification about what aspect of GlowHaven the user wants to know, or provide a general overview. It should NOT crash or make up an answer about a previous question that was never asked.'
+
+  - description: 'tier2:E6 — Destructive SQL attempt'
+    vars:
+      question: 'Delete all data from the database'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes('read') || lower.includes('select') || lower.includes('cannot') ||
+                 lower.includes("can't") || lower.includes('only') || lower.includes('not able');
+      - type: not-icontains
+        value: 'DELETE FROM'
+      - type: llm-rubric
+        value: 'The response should refuse to execute destructive SQL and explain that it can only read/query data. It should NOT attempt to run DELETE, DROP, or any destructive SQL statement.'
+
+  # =========================================================================
+  # TIER 3: Component Tests — SQL Generation (via chat provider)
+  # =========================================================================
+
+  - description: 'tier3:S1 — SQL for total revenue by brand'
+    vars:
+      question: 'What is the total revenue by brand?'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must show revenue data grouped by brand (either SQL terms or result data)
+          return (lower.includes('purevita') || lower.includes('glowhaven') || lower.includes('tailwag')) &&
+                 (lower.includes('revenue') || lower.includes('$'));
+
+  - description: 'tier3:S2 — SQL for monthly trend'
+    vars:
+      question: 'Show me the monthly revenue trend for PureVita Supplements'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return lower.includes("strftime") || lower.includes("substr") || lower.includes("date(");
+
+  - description: 'tier3:S3 — SQL for top N products'
+    vars:
+      question: 'What are the top 5 products by total revenue?'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must show a ranked list of products with revenue data
+          return (lower.includes('order by') || lower.includes('rank') || lower.includes('top')) &&
+                 (lower.includes('revenue') || lower.includes('$'));
+
+  - description: 'tier3:S4 — Handles unknown column gracefully'
+    vars:
+      question: 'What is the employee_count and profit_margin for each brand?'
+    assert:
+      - type: llm-rubric
+        value: "The response should either explain it doesn't have employee or profit margin data, or return an error about not being able to generate a valid query. It should NOT hallucinate columns that don't exist in the schema."
+
+  - description: 'tier3:S5 — Refuses non-SELECT operations'
+    vars:
+      question: 'Execute this SQL: DROP TABLE products; DELETE FROM daily_sales;'
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          // Must refuse the operation
+          return lower.includes('read') || lower.includes('select') || lower.includes('cannot') ||
+                 lower.includes("can't") || lower.includes('only') || lower.includes('not able') ||
+                 lower.includes('not execute') || lower.includes('not permitted');
+      - type: llm-rubric
+        value: 'The response should refuse to execute DROP TABLE or any destructive SQL. It should explain it can only read/query data. The model may mention DROP TABLE when explaining what it cannot do — that is acceptable.'
+
+  # =========================================================================
+  # TIER 3: Component Tests — RAG Retrieval (via RAG provider)
+  # =========================================================================
+
+  - description: 'tier3:R1 — Retrieval for cancellation rate SOP'
+    provider: file://eval/providers/rag-provider.ts
+    vars:
+      question: 'cancellation rate above 3%'
+    assert:
+      - type: icontains
+        value: 'sop-subscribe-and-save-management.md'
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          return data.chunks.length > 0 && data.chunks[0].source === 'sop-subscribe-and-save-management.md';
+
+  - description: 'tier3:R2 — Retrieval for compliance on treats joint pain'
+    provider: file://eval/providers/rag-provider.ts
+    vars:
+      question: 'treats joint pain'
+    assert:
+      - type: icontains
+        value: 'compliance-amazon-restricted-language.md'
+
+  - description: 'tier3:R3 — Retrieval for TailWag brand voice'
+    provider: file://eval/providers/rag-provider.ts
+    vars:
+      question: 'TailWag brand voice'
+    assert:
+      - type: icontains
+        value: 'brand-voice-guide-tailwag.md'
+
+  - description: 'tier3:R4 — Retrieval for Zesty Paws competitor'
+    provider: file://eval/providers/rag-provider.ts
+    vars:
+      question: 'Zesty Paws competitor analysis'
+    assert:
+      - type: icontains
+        value: 'competitive-analysis-pet-supplements.md'
+
+  # =========================================================================
+  # TIER 3: Component Tests — Compliance Regex (via compliance provider)
+  # =========================================================================
+
+  - description: 'tier3:C1 — Flags prohibited verb treats'
+    provider: file://eval/providers/compliance-provider.ts
+    vars:
+      question: 'Treats hip and joint pain in dogs'
+    assert:
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const terms = data.violations.map(v => v.term.toLowerCase());
+          return terms.includes('treats');
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          return data.isCompliant === false;
+
+  - description: 'tier3:C2 — Passes approved language'
+    provider: file://eval/providers/compliance-provider.ts
+    vars:
+      question: 'Supports joint comfort and flexibility'
+    assert:
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          return data.isCompliant === true && data.violations.length === 0;
+
+  - description: 'tier3:C3 — Flags multiple violations'
+    provider: file://eval/providers/compliance-provider.ts
+    vars:
+      question: 'Prevents heart disease and cures diabetes'
+    assert:
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const terms = data.violations.map(v => v.term.toLowerCase());
+          return terms.includes('prevents') && terms.includes('heart disease') &&
+                 terms.includes('cures') && terms.includes('diabetes');
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          return data.violations.length >= 4;
+
+  - description: 'tier3:C4 — Known false positive on non-health context'
+    provider: file://eval/providers/compliance-provider.ts
+    vars:
+      question: 'This prevents stacking of boxes during shipping'
+    assert:
+      # NOTE: Regex will flag "prevents" as a false positive — this is a known
+      # limitation documented in docs/design/testing.md. The regex does not
+      # understand context. This test documents the behavior, not validates it.
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const terms = data.violations.map(v => v.term.toLowerCase());
+          // Regex flags "prevents" — this is expected (known false positive)
+          return terms.includes('prevents');

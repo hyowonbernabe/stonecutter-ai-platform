@@ -18,9 +18,10 @@ data/orama/
 # Specs and plans (local-only)
 docs/superpowers/
 
-# PromptFoo output
+# PromptFoo output and eval results
 .promptfoo/
 promptfoo-output/
+eval/results/
 
 # OS files
 .DS_Store
