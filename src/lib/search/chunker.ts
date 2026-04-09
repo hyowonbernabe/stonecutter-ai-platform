@@ -182,9 +182,10 @@ function mergeSmallSections(sections: Section[]): Section[] {
 
   for (const section of sections) {
     if (pending) {
-      // Merge pending into this section
+      // Merge pending into this section — use the next section's headers
+      // since it's the primary content
       merged.push({
-        headers: pending.headers,
+        headers: section.headers,
         content: pending.content + '\n\n' + section.content,
       });
       pending = null;
