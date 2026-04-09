@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Database, Search, ShieldCheck, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { ChevronDown, Database, Search, ShieldCheck, Loader2, CheckCircle2, XCircle, Copy, Check } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -58,6 +58,26 @@ export function ToolCallChip({ toolName, state, input, output, errorText }: Tool
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-1.5 right-1.5 rounded p-1 text-muted-foreground hover:text-foreground transition-colors"
+      aria-label={copied ? "Copied" : "Copy SQL query"}
+    >
+      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
+
 function ToolOutput({ toolName, output }: { toolName: string; output: unknown }) {
   if (toolName === "query_database") {
     const data = output as { sql?: string; rowCount?: number; error?: string };
@@ -66,8 +86,9 @@ function ToolOutput({ toolName, output }: { toolName: string; output: unknown })
         {data.sql && (
           <div>
             <span className="text-muted-foreground">SQL Query</span>
-            <pre className="mt-1 overflow-x-auto rounded bg-card p-2 font-mono text-xs text-foreground">
+            <pre className="relative mt-1 overflow-x-auto rounded bg-card p-2 pr-8 font-mono text-xs text-foreground">
               {data.sql}
+              <CopyButton text={data.sql} />
             </pre>
           </div>
         )}

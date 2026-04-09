@@ -64,6 +64,7 @@ export function ChatMessage({ role, parts, isStreaming }: ChatMessageProps) {
                   plugins={{ code }}
                   isAnimating={isStreaming && part.state === "streaming"}
                   caret={isStreaming && part.state === "streaming" ? "block" : undefined}
+                  linkSafety={{ enabled: false }}
                 >
                   {part.text}
                 </Streamdown>
