@@ -5,14 +5,14 @@
 AI-powered Amazon brand intelligence platform. Dashboard + AI chatbot that answers natural language questions by querying a SQL database (sales/ads/subscriptions) and a knowledge base (SOPs, compliance, brand guides) via tool calling.
 
 **Repo:** https://github.com/hyowonbernabe/stonecutter-ai-platform
-**Status:** Foundation complete (Layer 1). Building Layer 2 next.
+**Status:** Layers 1-5 complete. Testing verified (27 PromptFoo tests). Building Layer 6 (Chat UI) next.
 
 ## Architecture
 
-Thin Orchestrator — Qwen 3.6 Plus via OpenRouter decides which tools to call. No custom routing logic.
+Thin Orchestrator — MiniMax M2.7 via OpenRouter decides which tools to call. No custom routing logic.
 
 ```
-User → Next.js API (/api/chat) → Vercel AI SDK → Qwen 3.6 Plus (tool calling)
+User → Next.js API (/api/chat) → Vercel AI SDK → MiniMax M2.7 (tool calling)
                                                     ├── query_database → SQLite
                                                     ├── search_knowledge_base → Orama (hybrid)
                                                     └── check_compliance → Regex
@@ -23,7 +23,7 @@ Dashboard serves static SQLite queries via `/api/dashboard/*`.
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router) + TypeScript
-- **LLM:** Qwen 3.6 Plus (`qwen/qwen3.6-plus`) via OpenRouter + Vercel AI SDK
+- **LLM:** MiniMax M2.7 (`minimax/minimax-m2.7`) via OpenRouter + Vercel AI SDK
 - **Search:** Orama (BM25 + vector + hybrid in one library)
 - **Embeddings:** nomic-embed-text-v1.5 via Transformers.js v4 (local, no API key)
 - **Database:** SQLite via better-sqlite3 (read-only)
@@ -90,7 +90,7 @@ src/
 
 ```
 OPENROUTER_API_KEY=sk-or-...          # Required
-OPENROUTER_MODEL=qwen/qwen3.6-plus   # Optional, defaults to this
+OPENROUTER_MODEL=minimax/minimax-m2.7 # Optional, defaults to this
 ```
 
 ## Commands
@@ -107,11 +107,11 @@ npm run eval:tier1   # Rubric questions only
 See `docs/design/roadmap.md` for full checklist.
 
 1. ~~Foundation~~ (done)
-2. **Data Layer** ← next (SQLite connection, embeddings, Orama ingestion)
-3. Tools (query_database, search_knowledge_base, check_compliance)
-4. AI Orchestration (Vercel AI SDK + tool calling + system prompt)
-5. Testing (PromptFoo — verify before UI)
-6. Chat UI (core deliverable)
+2. ~~Data Layer~~ (done)
+3. ~~Tools~~ (done)
+4. ~~AI Orchestration~~ (done)
+5. ~~Testing~~ (done — 27 PromptFoo tests across 3 tiers)
+6. **Chat UI** ← next (core deliverable)
 7. Dashboard (additive polish)
 
 ## Rules
